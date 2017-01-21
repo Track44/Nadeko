@@ -265,16 +265,16 @@
     <value>repeatinvoke repinv</value>
   </data>
   <data name="repeatinvoke_desc" xml:space="preserve">
-    <value>Immediately shows the repeat message and restarts the timer.</value>
+    <value>Immediately shows the repeat message on a certain index and restarts its timer.</value>
   </data>
   <data name="repeatinvoke_usage" xml:space="preserve">
-    <value>`{0}repinv`</value>
+    <value>`{0}repinv 1`</value>
   </data>
   <data name="repeat_cmd" xml:space="preserve">
     <value>repeat</value>
   </data>
   <data name="repeat_desc" xml:space="preserve">
-    <value>Repeat a message every X minutes. If no parameters are specified, repeat is disabled.</value>
+    <value>Repeat a message every X minutes in the current channel. You can have up to 5 repeating messages on the server in total.</value>
   </data>
   <data name="repeat_usage" xml:space="preserve">
     <value>`{0}repeat 5 Hello there`</value>
@@ -2870,5 +2870,113 @@
   </data>
   <data name="rotaterolecolor_usage" xml:space="preserve">
     <value>`{0}rrc 60 MyLsdRole #ff0000 #00ff00 #0000ff` or `{0}rrc 0 MyLsdRole`</value>
+  </data>
+  <data name="createinvite_cmd" xml:space="preserve">
+    <value>createinvite crinv</value>
+  </data>
+  <data name="createinvite_desc" xml:space="preserve">
+    <value>Creates a new invite which has infinite max uses and never expires.</value>
+  </data>
+  <data name="createinvite_usage" xml:space="preserve">
+    <value>`{0}crinv`</value>
+  </data>
+  <data name="pollstats_cmd" xml:space="preserve">
+    <value>pollstats</value>
+  </data>
+  <data name="pollstats_desc" xml:space="preserve">
+    <value>Shows the poll results without stopping the poll on this server.</value>
+  </data>
+  <data name="pollstats_usage" xml:space="preserve">
+    <value>`{0}pollstats`</value>
+  </data>
+  <data name="repeatlist_cmd" xml:space="preserve">
+    <value>repeatlist replst</value>
+  </data>
+  <data name="repeatlist_desc" xml:space="preserve">
+    <value>Shows currently repeating messages and their indexes.</value>
+  </data>
+  <data name="repeatlist_usage" xml:space="preserve">
+    <value>`{0}repeatlist`</value>
+  </data>
+  <data name="repeatremove_cmd" xml:space="preserve">
+    <value>repeatremove reprm</value>
+  </data>
+  <data name="repeatremove_desc" xml:space="preserve">
+    <value>Removes a repeating message on a specified index. Use `{0}repeatlist` to see indexes.</value>
+  </data>
+  <data name="repeatremove_usage" xml:space="preserve">
+    <value>`{0}reprm 2`</value>
+  </data>
+  <data name="antilist_cmd" xml:space="preserve">
+    <value>antilist antilst</value>
+  </data>
+  <data name="antilist_desc" xml:space="preserve">
+    <value>Shows currently enabled protection features.</value>
+  </data>
+  <data name="antilist_usage" xml:space="preserve">
+    <value>`{0}antilist`</value>
+  </data>
+  <data name="antispamignore_cmd" xml:space="preserve">
+    <value>antispamignore</value>
+  </data>
+  <data name="antispamignore_desc" xml:space="preserve">
+    <value>Toggles whether antispam ignores current channel. Antispam must be enabled.</value>
+  </data>
+  <data name="antispamignore_usage" xml:space="preserve">
+    <value>`{0}antispamignore`</value>
+  </data>
+  <data name="cmdcosts_cmd" xml:space="preserve">
+    <value>cmdcosts</value>
+  </data>
+  <data name="cmdcosts_desc" xml:space="preserve">
+    <value>Shows a list of command costs. Paginated with 9 command per page.</value>
+  </data>
+  <data name="cmdcosts_usage" xml:space="preserve">
+    <value>`{0}cmdcosts` or `{0}cmdcosts 2`</value>
+  </data>
+  <data name="commandcost_cmd" xml:space="preserve">
+    <value>commandcost cmdcost</value>
+  </data>
+  <data name="commandcost_desc" xml:space="preserve">
+    <value>Sets a price for a command. Running that command will take currency from users. Set 0 to remove the price.</value>
+  </data>
+  <data name="commandcost_usage" xml:space="preserve">
+    <value>`{0}cmdcost 0 !!q` or `{0}cmdcost 1 &gt;8ball`</value>
+  </data>
+  <data name="startevent_cmd" xml:space="preserve">
+    <value>startevent</value>
+  </data>
+  <data name="startevent_desc" xml:space="preserve">
+    <value>Starts one of the events seen on public nadeko.</value>
+  </data>
+  <data name="startevent_usage" xml:space="preserve">
+    <value>`{0}startevent flowerreaction`</value>
+  </data>
+  <data name="slotstats_cmd" xml:space="preserve">
+    <value>slotstats</value>
+  </data>
+  <data name="slotstats_desc" xml:space="preserve">
+    <value>Shows the total stats of the slot command for this bot's session.</value>
+  </data>
+  <data name="slotstats_usage" xml:space="preserve">
+    <value>`{0}slotstats`</value>
+  </data>
+  <data name="slottest_cmd" xml:space="preserve">
+    <value>slottest</value>
+  </data>
+  <data name="slottest_desc" xml:space="preserve">
+    <value>Tests to see how much slots payout for X number of plays.</value>
+  </data>
+  <data name="slottest_usage" xml:space="preserve">
+    <value>`{0}slottest 1000`</value>
+  </data>
+  <data name="slot_cmd" xml:space="preserve">
+    <value>slot</value>
+  </data>
+  <data name="slot_desc" xml:space="preserve">
+    <value>Play Nadeko slots. Max bet is 999. 3 seconds cooldown per user.</value>
+  </data>
+  <data name="slot_usage" xml:space="preserve">
+    <value>`{0}slot 5`</value>
   </data>
 </root>

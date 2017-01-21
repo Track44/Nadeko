@@ -58,7 +58,7 @@ namespace NadekoBot.Modules.Games
                 if (!CleverbotGuilds.TryGetValue(channel.Guild.Id, out cleverbot))
                     return false;
 
-                var nadekoId = NadekoBot.Client.CurrentUser().Id;
+                var nadekoId = NadekoBot.Client.CurrentUser.Id;
                 var normalMention = $"<@{nadekoId}> ";
                 var nickMention = $"<@!{nadekoId}> ";
                 string message;
@@ -88,10 +88,10 @@ namespace NadekoBot.Modules.Games
                 }
                 return true;
             }
-#if !GLOBAL_NADEKO
+
             [NadekoCommand, Usage, Description, Aliases]
             [RequireContext(ContextType.Guild)]
-            [RequireUserPermission(ChannelPermission.ManageMessages)]
+            [RequireUserPermission(GuildPermission.ManageMessages)]
             public async Task Cleverbot()
             {
                 var channel = (ITextChannel)Context.Channel;
@@ -120,7 +120,6 @@ namespace NadekoBot.Modules.Games
 
                 await Context.Channel.SendConfirmAsync($"{Context.User.Mention} Enabled cleverbot on this server.").ConfigureAwait(false);
             }
-#endif
         }
     }
 }

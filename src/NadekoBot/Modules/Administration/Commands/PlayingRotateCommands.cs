@@ -27,12 +27,8 @@ namespace NadekoBot.Modules.Administration
             {
                 _log = LogManager.GetCurrentClassLogger();
 
-                using (var uow = DbHandler.UnitOfWork())
-                {
-                    var conf = uow.BotConfig.GetOrCreate();
-                    RotatingStatusMessages = conf.RotatingStatusMessages;
-                    RotatingStatuses = conf.RotatingStatuses;
-                }
+                RotatingStatusMessages = NadekoBot.BotConfig.RotatingStatusMessages;
+                RotatingStatuses = NadekoBot.BotConfig.RotatingStatuses;
 
                 var t = Task.Run(async () =>
                 {
@@ -54,7 +50,7 @@ namespace NadekoBot.Modules.Administration
                                 if (string.IsNullOrWhiteSpace(status))
                                     continue;
                                 PlayingPlaceholders.ForEach(e => status = status.Replace(e.Key, e.Value()));
-                                await NadekoBot.Client.SetGame(status);
+                                await NadekoBot.Client.SetGameAsync(status).ConfigureAwait(false);
                             }
                         }
                         catch (Exception ex)
@@ -71,8 +67,8 @@ namespace NadekoBot.Modules.Administration
 
             public static Dictionary<string, Func<string>> PlayingPlaceholders { get; } =
                 new Dictionary<string, Func<string>> {
-                    {"%servers%", () => NadekoBot.Client.GetGuilds().Count().ToString()},
-                    {"%users%", () => NadekoBot.Client.GetGuilds().Select(s => s.Users.Count).Sum().ToString()},
+                    {"%servers%", () => NadekoBot.Client.GetGuildCount().ToString()},
+                    {"%users%", () => NadekoBot.Client.GetGuilds().Sum(s => s.Users.Count).ToString()},
                     {"%playing%", () => {
                             var cnt = Music.Music.MusicPlayers.Count(kvp => kvp.Value.CurrentSong != null);
                             if (cnt != 1) return cnt.ToString();

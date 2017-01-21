@@ -25,12 +25,12 @@ namespace NadekoBot.Modules.Searches.Commands.Models
         public double temp { get; set; }
         public string tempA {
             get {
-                double tempA = (double)temp * 1.8 + 32;
+                float tempA = (float)temp * 1.8 + 32;
                 return tempA.ToString("N1");
             }
         }
-        public double pressure { get; set; }
-        public int humidity { get; set; }
+        public float pressure { get; set; }
+        public float humidity { get; set; }
         public double temp_min { get; set; }
         public string temp_minA {
             get {

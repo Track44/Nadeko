@@ -77,7 +77,7 @@ namespace NadekoBot.Modules.Gambling
 
                     using (var uow = DbHandler.UnitOfWork())
                     {
-                        animals = new ConcurrentQueue<string>(uow.BotConfig.GetOrCreate().RaceAnimals.Select(ra => ra.Icon).Shuffle());
+                        animals = new ConcurrentQueue<string>(NadekoBot.BotConfig.RaceAnimals.Select(ra => ra.Icon).Shuffle());
                     }
 
 
@@ -207,15 +207,15 @@ namespace NadekoBot.Modules.Gambling
 
                 }
 
-                private void Client_MessageReceived(SocketMessage imsg)
+                private Task Client_MessageReceived(SocketMessage imsg)
                 {
                     var msg = imsg as SocketUserMessage;
                     if (msg == null)
-                        return;
+                        return Task.CompletedTask;
                     if (msg.IsAuthor() || !(imsg.Channel is ITextChannel) || imsg.Channel != raceChannel)
-                        return;
+                        return Task.CompletedTask;
                     messagesSinceGameStarted++;
-                    return;
+                    return Task.CompletedTask;
                 }
 
                 private async Task CheckForFullGameAsync(CancellationToken cancelToken)
@@ -248,7 +248,7 @@ namespace NadekoBot.Modules.Gambling
                     if (amount > 0)
                         if (!await CurrencyHandler.RemoveCurrencyAsync((IGuildUser)u, "BetRace", amount, false).ConfigureAwait(false))
                         {
-                            try { await raceChannel.SendErrorAsync($"{u.Mention} You don't have enough {Gambling.CurrencyName}s.").ConfigureAwait(false); } catch { }
+                            try { await raceChannel.SendErrorAsync($"{u.Mention} You don't have enough {NadekoBot.BotConfig.CurrencyPluralName}.").ConfigureAwait(false); } catch { }
                             return;
                         }
                     participants.Add(p);

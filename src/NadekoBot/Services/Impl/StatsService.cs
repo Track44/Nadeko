@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.WebSocket;
 using NadekoBot.Extensions;
 using System;
 using System.Collections.Generic;
@@ -11,24 +12,26 @@ namespace NadekoBot.Services.Impl
 {
     public class StatsService : IStatsService
     {
-        private ShardedDiscordClient client;
+        private DiscordShardedClient client;
         private DateTime started;
 
-        public const string BotVersion = "1.1.0-🍍";
+        public const string BotVersion = "1.1.3-🍍";
 
         public string Author => "Kwoth#2560";
         public string Library => "Discord.Net";
         public int MessageCounter { get; private set; } = 0;
         public int CommandsRan { get; private set; } = 0;
-        public string Heap => Math.Round((double)GC.GetTotalMemory(false) / 1.MiB(), 2).ToString();
-        public double MessagesPerSecond => MessageCounter / (double)GetUptime().TotalSeconds;
-        public int TextChannels => client.GetGuilds().SelectMany(g => g.Channels.Where(c => c is ITextChannel)).Count();
-        public int VoiceChannels => client.GetGuilds().SelectMany(g => g.Channels.Where(c => c is IVoiceChannel)).Count();
-        public string OwnerIds => string.Join(", ", NadekoBot.Credentials.OwnerIds);
-        
+        public string Heap =>
+            Math.Round((double)GC.GetTotalMemory(false) / 1.MiB(), 2).ToString();
+        public double MessagesPerSecond => MessageCounter / GetUptime().TotalSeconds;
+        private int _textChannels = 0;
+        public int TextChannels => _textChannels;
+        private int _voiceChannels = 0;
+        public int VoiceChannels => _voiceChannels;
+
         Timer carbonitexTimer { get; }
 
-        public StatsService(ShardedDiscordClient client, CommandHandler cmdHandler)
+        public StatsService(DiscordShardedClient client, CommandHandler cmdHandler)
         {
 
             this.client = client;
@@ -37,19 +40,57 @@ namespace NadekoBot.Services.Impl
             this.client.MessageReceived += _ => Task.FromResult(MessageCounter++);
             cmdHandler.CommandExecuted += (_, e) => Task.FromResult(CommandsRan++);
 
-            this.client.Disconnected += _ => Reset();
+            this.client.ChannelCreated += (c) =>
+            {
+                if (c is ITextChannel)
+                    ++_textChannels;
+                else if (c is IVoiceChannel)
+                    ++_voiceChannels;
+
+                return Task.CompletedTask;
+            };
+
+            this.client.ChannelDestroyed += (c) =>
+            {
+                if (c is ITextChannel)
+                    --_textChannels;
+                else if (c is IVoiceChannel)
+                    --_voiceChannels;
+
+                return Task.CompletedTask;
+            };
+
+            this.client.JoinedGuild += (g) =>
+            {
+                var tc = g.Channels.Where(cx => cx is ITextChannel).Count();
+                var vc = g.Channels.Count - tc;
+                _textChannels += tc;
+                _voiceChannels += vc;
+
+                return Task.CompletedTask;
+            };
+
+            this.client.LeftGuild += (g) =>
+            {
+                var tc = g.Channels.Where(cx => cx is ITextChannel).Count();
+                var vc = g.Channels.Count - tc;
+                _textChannels -= tc;
+                _voiceChannels -= vc;
+
+                return Task.CompletedTask;
+            };
 
             this.carbonitexTimer = new Timer(async (state) =>
             {
-            if (string.IsNullOrWhiteSpace(NadekoBot.Credentials.CarbonKey))
-                return;
+                if (string.IsNullOrWhiteSpace(NadekoBot.Credentials.CarbonKey))
+                    return;
                 try
                 {
                     using (var http = new HttpClient())
                     {
                         using (var content = new FormUrlEncodedContent(
                             new Dictionary<string, string> {
-                                { "servercount", this.client.GetGuilds().Count.ToString() },
+                                { "servercount", this.client.GetGuildCount().ToString() },
                                 { "key", NadekoBot.Credentials.CarbonKey }}))
                         {
                             content.Headers.Clear();
@@ -62,16 +103,24 @@ namespace NadekoBot.Services.Impl
                 catch { }
             }, null, TimeSpan.FromHours(1), TimeSpan.FromHours(1));
         }
+
+        public void Initialize()
+        {
+            var guilds = this.client.GetGuilds();
+            _textChannels = guilds.Sum(g => g.Channels.Where(cx => cx is ITextChannel).Count());
+            _voiceChannels = guilds.Sum(g => g.Channels.Count) - _textChannels;
+        }
+
         public Task<string> Print()
         {
-            var curUser = client.CurrentUser();
+            var curUser = client.CurrentUser;
             return Task.FromResult($@"
 Author: [{Author}] | Library: [{Library}]
 Bot Version: [{BotVersion}]
 Bot ID: {curUser.Id}
-Owner ID(s): {OwnerIds}
+Owner ID(s): {string.Join(", ", NadekoBot.Credentials.OwnerIds)}
 Uptime: {GetUptimeString()}
-Servers: {client.GetGuilds().Count} | TextChannels: {TextChannels} | VoiceChannels: {VoiceChannels}
+Servers: {client.GetGuildCount()} | TextChannels: {TextChannels} | VoiceChannels: {VoiceChannels}
 Commands Ran this session: {CommandsRan}
 Messages: {MessageCounter} [{MessagesPerSecond:F2}/sec] Heap: [{Heap} MB]");
         }

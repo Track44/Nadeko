@@ -13,14 +13,7 @@ namespace NadekoBot.Modules.Games
     [NadekoModule("Games", ">")]
     public partial class Games : DiscordModule
     {
-        private IEnumerable<string> _8BallResponses {
-            get {
-                using (var uow = DbHandler.UnitOfWork())
-                {
-                    return uow.BotConfig.GetOrCreate().EightBallResponses.Select(ebr => ebr.Text);
-                }
-            }
-        }
+        private static IEnumerable<string> _8BallResponses { get; } = NadekoBot.BotConfig.EightBallResponses.Select(ebr => ebr.Text);
 
 
         [NadekoCommand, Usage, Description, Aliases]
@@ -87,7 +80,7 @@ namespace NadekoBot.Modules.Games
             else if ((pick == 0 && nadekoPick == 1) ||
                      (pick == 1 && nadekoPick == 2) ||
                      (pick == 2 && nadekoPick == 0))
-                msg = $"{NadekoBot.Client.CurrentUser().Mention} won! {GetRPSPick(nadekoPick)} beats {GetRPSPick(pick)}";
+                msg = $"{NadekoBot.Client.CurrentUser.Mention} won! {GetRPSPick(nadekoPick)} beats {GetRPSPick(pick)}";
             else
                 msg = $"{Context.User.Mention} won! {GetRPSPick(pick)} beats {GetRPSPick(nadekoPick)}";
 

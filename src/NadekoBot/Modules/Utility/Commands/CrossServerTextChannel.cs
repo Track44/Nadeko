@@ -9,9 +9,9 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NadekoBot.Modules.Administration
+namespace NadekoBot.Modules.Utility
 {
-    public partial class Administration
+    public partial class Utility
     {
         [Group]
         public class CrossServerTextChannel : ModuleBase
@@ -31,7 +31,7 @@ namespace NadekoBot.Modules.Administration
                         var channel = imsg.Channel as ITextChannel;
                         if (channel == null)
                             return;
-                        if (msg.Author.Id == NadekoBot.Client.CurrentUser().Id) return;
+                        if (msg.Author.Id == NadekoBot.Client.CurrentUser.Id) return;
                         foreach (var subscriber in Subscribers)
                         {
                             var set = subscriber.Value;
