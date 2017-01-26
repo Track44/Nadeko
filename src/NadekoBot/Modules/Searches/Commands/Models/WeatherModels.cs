@@ -25,7 +25,7 @@ namespace NadekoBot.Modules.Searches.Commands.Models
         public double temp { get; set; }
         public string tempA {
             get {
-                float tempA = (float)temp * 1.8 + 32;
+                double tempA = (double)temp * 1.8 + 32;
                 return tempA.ToString("N1");
             }
         }
