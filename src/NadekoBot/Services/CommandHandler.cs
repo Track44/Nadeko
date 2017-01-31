@@ -159,8 +159,8 @@ namespace NadekoBot.Services
 
         private async Task<bool> WordFiltered(IGuild guild, SocketUserMessage usrMsg)
         {
-            var filteredChannelWords = Permissions.FilterCommands.FilteredWordsForChannel(usrMsg.Channel.Id, guild.Id);
-            var filteredServerWords = Permissions.FilterCommands.FilteredWordsForServer(guild.Id);
+            var filteredChannelWords = Permissions.FilterCommands.FilteredWordsForChannel(usrMsg.Channel.Id, guild.Id) ?? new ConcurrentHashSet<string>();
+            var filteredServerWords = Permissions.FilterCommands.FilteredWordsForServer(guild.Id) ?? new ConcurrentHashSet<string>();
             var wordsInMessage = usrMsg.Content.ToLowerInvariant().Split(' ');
             if (filteredChannelWords.Count != 0 || filteredServerWords.Count != 0)
             {
@@ -197,8 +197,10 @@ namespace NadekoBot.Services
                 if (usrMsg == null) //has to be an user message, not system/other messages.
                     return;
 
+#if !GLOBAL_NADEKO
                 // track how many messagges each user is sending
                 UserMessagesSent.AddOrUpdate(usrMsg.Author.Id, 1, (key, old) => ++old);
+#endif
 
                 var channel = msg.Channel as SocketTextChannel;
                 var guild = channel?.Guild;
@@ -220,6 +222,7 @@ namespace NadekoBot.Services
                     return;
 
                 // maybe this message is a custom reaction
+                // todo log custom reaction executions. return struct with info
                 var crExecuted = await Task.Run(() => CustomReactions.TryExecuteCustomReaction(usrMsg)).ConfigureAwait(false);
                 if (crExecuted) //if it was, don't execute the command
                     return;

@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -116,26 +115,20 @@ namespace NadekoBot.Modules.Searches
             if (string.IsNullOrWhiteSpace(terms))
                 return;
 
+            terms = WebUtility.UrlEncode(terms).Replace(' ', '+');
+
             try
             {
-                using (var http = new HttpClient())
-                {
-                    var reqString = $"https://www.googleapis.com/customsearch/v1?q={Uri.EscapeDataString(terms)}&cx=018084019232060951019%3Ahs5piey28-e&num=1&searchType=image&fields=items%2Flink&key={NadekoBot.Credentials.GoogleApiKey}";
-                    var obj = JObject.Parse(await http.GetStringAsync(reqString).ConfigureAwait(false));
-                    var image = obj["items"][0]["link"].ToString();
-                    var imageurl = await NadekoBot.Google.ShortenUrl(image).ConfigureAwait(false);
-                    await Context.Channel.EmbedAsync(new EmbedBuilder().WithOkColor()
-                                        .WithAuthor(eab => eab.WithName($"Image Search For: {terms.TrimTo(50)}"))
-                                        .WithDescription(imageurl)
-                                        .WithImageUrl(image)
-                                        ).ConfigureAwait(false);
-                }
+                var res = await NadekoBot.Google.GetImageAsync(terms).ConfigureAwait(false);
+                await Context.Channel.EmbedAsync(new EmbedBuilder().WithOkColor()
+                    .WithAuthor(eab => eab.WithName("Image Search For: " + terms.TrimTo(50)))
+                    .WithDescription($"{await NadekoBot.Google.ShortenUrl(res.Link)}")
+                    .WithImageUrl(res.Link)
+                    ).ConfigureAwait(false);
             }
-            catch (HttpRequestException exception)
+            catch
             {
-                if (exception.Message.Contains("403 (Forbidden)"))
-                {
-                terms = WebUtility.UrlEncode(terms).Replace(' ', '+');
+                _log.Warn("Falling back to Imgur search.");
 
                 var fullQueryLink = $"http://imgur.com/search?q={ terms }";
                 var config = Configuration.Default.WithDefaultLoader();
@@ -151,14 +144,13 @@ namespace NadekoBot.Modules.Searches
                 if (img?.Source == null)
                     return;
 
-                var source = await NadekoBot.Google.ShortenUrl(img.Source.Replace("b.", ".")).ConfigureAwait(false);
+                var source = img.Source.Replace("b.", ".");
 
                 await Context.Channel.EmbedAsync(new EmbedBuilder().WithOkColor()
-                                    .WithAuthor(eab => eab.WithName($"Image Search For: {terms.TrimTo(50)}"))
-                                    .WithDescription(source)
-                                    .WithImageUrl(source)
-                                    ).ConfigureAwait(false);
-                }
+                    .WithAuthor(eab => eab.WithName("Image Search For: " + terms.TrimTo(50)))
+                    .WithDescription($"{await NadekoBot.Google.ShortenUrl(source)}")
+                    .WithImageUrl(source)
+                    ).ConfigureAwait(false);
             }
         }
 
@@ -168,51 +160,42 @@ namespace NadekoBot.Modules.Searches
             terms = terms?.Trim();
             if (string.IsNullOrWhiteSpace(terms))
                 return;
+            terms = WebUtility.UrlEncode(terms).Replace(' ', '+');
             try
             {
-                using (var http = new HttpClient())
-                {
-                    var rng = new NadekoRandom();
-                    var reqString = $"https://www.googleapis.com/customsearch/v1?q={Uri.EscapeDataString(terms)}&cx=018084019232060951019%3Ahs5piey28-e&num=1&searchType=image&start={ rng.Next(1, 50) }&fields=items%2Flink&key={NadekoBot.Credentials.GoogleApiKey}";
-                    var obj = JObject.Parse(await http.GetStringAsync(reqString).ConfigureAwait(false));
-                    var items = obj["items"] as JArray;
-                    var image = items[0]["link"].ToString();
-                    var imageurl = await NadekoBot.Google.ShortenUrl(image).ConfigureAwait(false);
-                    await Context.Channel.EmbedAsync(new EmbedBuilder().WithOkColor()
-                                        .WithAuthor(eab => eab.WithName($"Random Image Search For: {terms.TrimTo(50)}"))
-                                        .WithDescription(imageurl)
-                                        .WithImageUrl(image)
-                                        ).ConfigureAwait(false);
-                }
+                var res = await NadekoBot.Google.GetImageAsync(terms, new NadekoRandom().Next(0, 50)).ConfigureAwait(false);
+                await Context.Channel.EmbedAsync(new EmbedBuilder().WithOkColor()
+                    .WithAuthor(eab => eab.WithName("Image Search For: " + terms.TrimTo(50)))
+                    .WithDescription($"{await NadekoBot.Google.ShortenUrl(res.Link)}")
+                    .WithImageUrl(res.Link)
+                    ).ConfigureAwait(false);
             }
-            catch (HttpRequestException exception)
+            catch
             {
-                if (exception.Message.Contains("403 (Forbidden)"))
-                {
-                    terms = WebUtility.UrlEncode(terms).Replace(' ', '+');
+                _log.Warn("Falling back to Imgur");
+                terms = WebUtility.UrlEncode(terms).Replace(' ', '+');
 
-                    var fullQueryLink = $"http://imgur.com/search?q={ terms }";
-                    var config = Configuration.Default.WithDefaultLoader();
-                    var document = await BrowsingContext.New(config).OpenAsync(fullQueryLink);
+                var fullQueryLink = $"http://imgur.com/search?q={ terms }";
+                var config = Configuration.Default.WithDefaultLoader();
+                var document = await BrowsingContext.New(config).OpenAsync(fullQueryLink);
 
-                    var elems = document.QuerySelectorAll("a.image-list-link").ToList();
+                var elems = document.QuerySelectorAll("a.image-list-link").ToList();
 
-                    if (!elems.Any())
-                        return;
+                if (!elems.Any())
+                    return;
 
-                    var img = (elems.ElementAtOrDefault(new NadekoRandom().Next(0, elems.Count))?.Children?.FirstOrDefault() as IHtmlImageElement);
+                var img = (elems.ElementAtOrDefault(new NadekoRandom().Next(0, elems.Count))?.Children?.FirstOrDefault() as IHtmlImageElement);
 
-                    if (img?.Source == null)
-                        return;
+                if (img?.Source == null)
+                    return;
 
-                    var source = img.Source.Replace("b.", ".").ToString();
-                    var imageurl = await NadekoBot.Google.ShortenUrl(source).ConfigureAwait(false);
-                    await Context.Channel.EmbedAsync(new EmbedBuilder().WithOkColor()
-                        .WithAuthor(eab => eab.WithName($"Random Image Search For: {terms.TrimTo(50)}"))
-                        .WithDescription(imageurl)
-                        .WithImageUrl(source)
-                        ).ConfigureAwait(false);
-                }
+                var source = img.Source.Replace("b.", ".");
+
+                await Context.Channel.EmbedAsync(new EmbedBuilder().WithOkColor()
+                    .WithAuthor(eab => eab.WithName("Image Search For: " + terms.TrimTo(50)))
+                    .WithDescription($"{await NadekoBot.Google.ShortenUrl(source)}")
+                    .WithImageUrl(source)
+                    ).ConfigureAwait(false);
             }
         }
 
@@ -297,7 +280,7 @@ namespace NadekoBot.Modules.Searches
                 .WithTitle(Context.User.Mention)
                 .WithFooter(efb => efb.WithText(totalResults));
 
-            var desc = await Task.WhenAll(results.Select(async res => 
+            var desc = await Task.WhenAll(results.Select(async res =>
                     $"[{Format.Bold(res?.Title)}]({(await NadekoBot.Google.ShortenUrl(res?.Link))})\n{res?.Text}\n\n"))
                 .ConfigureAwait(false);
             await Context.Channel.EmbedAsync(embed.WithDescription(String.Concat(desc))).ConfigureAwait(false);
@@ -322,10 +305,10 @@ namespace NadekoBot.Modules.Searches
                                         .ConfigureAwait(false);
                 try
                 {
-                    var items = JArray.Parse(response).Shuffle().ToList();
-                    if (items == null)
+                    var items = JArray.Parse(response).ToArray();
+                    if (items == null || items.Length == 0)
                         throw new KeyNotFoundException("Cannot find a card by that name");
-                    var item = items[0];
+                    var item = items[new NadekoRandom().Next(0, items.Length)];
                     var storeUrl = await NadekoBot.Google.ShortenUrl(item["store_url"].ToString());
                     var cost = item["cost"].ToString();
                     var desc = item["text"].ToString();
@@ -381,13 +364,16 @@ namespace NadekoBot.Modules.Searches
                         throw new KeyNotFoundException("Cannot find a card by that name");
                     foreach (var item in items.Where(item => item.HasValues && item["img"] != null).Take(4))
                     {
-                        using (var sr = await http.GetStreamAsync(item["img"].ToString()))
+                        await Task.Run(async () =>
                         {
-                            var imgStream = new MemoryStream();
-                            await sr.CopyToAsync(imgStream);
-                            imgStream.Position = 0;
-                            images.Add(new ImageSharp.Image(imgStream));
-                        }
+                            using (var sr = await http.GetStreamAsync(item["img"].ToString()))
+                            {
+                                var imgStream = new MemoryStream();
+                                await sr.CopyToAsync(imgStream);
+                                imgStream.Position = 0;
+                                images.Add(new ImageSharp.Image(imgStream));
+                            }
+                        }).ConfigureAwait(false);
                     }
                     string msg = null;
                     if (items.Count > 4)
@@ -395,7 +381,7 @@ namespace NadekoBot.Modules.Searches
                         msg = "⚠ Found over 4 images. Showing random 4.";
                     }
                     var ms = new MemoryStream();
-                    images.AsEnumerable().Merge().SaveAsPng(ms);
+                    await Task.Run(() => images.AsEnumerable().Merge().SaveAsPng(ms));
                     ms.Position = 0;
                     await Context.Channel.SendFileAsync(ms, arg + ".png", msg).ConfigureAwait(false);
                 }
