@@ -123,13 +123,13 @@ namespace NadekoBot.Modules.Gambling
             public static async Task FlowerReactionEvent(CommandContext Context)
             {
                 var msg = await Context.Channel.SendConfirmAsync("Flower reaction event started!", 
-                    "Add 🌸 reaction to this message to get 100" + NadekoBot.BotConfig.CurrencySign,
+                    "Add 🍍 reaction to this message to get 20" + NadekoBot.BotConfig.CurrencySign,
                     footer: "This event is active for 24 hours.")
                                                .ConfigureAwait(false);
-                try { await msg.AddReactionAsync("🌸").ConfigureAwait(false); }
+                try { await msg.AddReactionAsync("🍍").ConfigureAwait(false); }
                 catch
                 {
-                    try { await msg.AddReactionAsync("🌸").ConfigureAwait(false); }
+                    try { await msg.AddReactionAsync("🍍").ConfigureAwait(false); }
                     catch
                     {
                         try { await msg.DeleteAsync().ConfigureAwait(false); }
@@ -140,9 +140,9 @@ namespace NadekoBot.Modules.Gambling
                  {
                      try
                      {
-                         if (r.Emoji.Name == "🌸" && r.User.IsSpecified && ((DateTime.UtcNow - r.User.Value.CreatedAt).TotalDays > 5) && _flowerReactionAwardedUsers.Add(r.User.Value.Id))
+                         if (r.Emoji.Name == "🍍" && r.User.IsSpecified && ((DateTime.UtcNow - r.User.Value.CreatedAt).TotalDays > 5) && _flowerReactionAwardedUsers.Add(r.User.Value.Id))
                          {
-                             try { await CurrencyHandler.AddCurrencyAsync(r.User.Value, "Flower Reaction Event", 100, false).ConfigureAwait(false); } catch { }
+                             try { await CurrencyHandler.AddCurrencyAsync(r.User.Value, "Flower Reaction Event", 20, false).ConfigureAwait(false); } catch { }
                          }
                      }
                      catch { }

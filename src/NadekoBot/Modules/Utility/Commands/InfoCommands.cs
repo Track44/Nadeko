@@ -101,6 +101,8 @@ namespace NadekoBot.Modules.Utility
                     string avi = user.AvatarUrl;
                     if (user.AvatarId.Substring(0,2) == "a_")
                         avi = avi.Substring(0, avi.Length-3) + "gif";
+                    if (user.JoinedAt?.ToString("dd.MM.yyyy HH:mm") == "01.01.0001 00:00") {
+                        await Context.Channel.SendMessageAsync($">userinfo {user.Mention}");
                     var embed = new EmbedBuilder()
                         .AddField(fb => fb.WithName("**Name**").WithValue($"**{user.Username}**#{user.Discriminator}").WithIsInline(true));
                     if (!string.IsNullOrWhiteSpace(user.Nickname))
@@ -108,9 +110,11 @@ namespace NadekoBot.Modules.Utility
                         embed.AddField(fb => fb.WithName("**Nickname**").WithValue(user.Nickname).WithIsInline(true));
                     }
                     embed.AddField(fb => fb.WithName("**ID**").WithValue(user.Id.ToString()).WithIsInline(true))
-                        .AddField(fb => fb.WithName("**Joined Server**").WithValue($"{user.JoinedAt?.ToString("dd.MM.yyyy HH:mm")}").WithIsInline(true))
+                    if (user.JoinedAt?.ToString("dd.MM.yyyy != "01.01.0001 00:00"") {
+                        embed.AddField(fb => fb.WithName("**Joined Server**").WithValue($"{user.JoinedAt?.ToString("dd.MM.yyyy HH:mm")}").WithIsInline(true))
                         .AddField(fb => fb.WithName("**Days Since Joined**").WithValue(daysJoin.ToString()).WithIsInline(true))
-                        .AddField(fb => fb.WithName("**Created At**").WithValue($"{user.CreatedAt.ToString("dd.MM.yyyy HH:mm")}").WithIsInline(true))
+                    }
+                    embed.AddField(fb => fb.WithName("**Created At**").WithValue($"{user.CreatedAt.ToString("dd.MM.yyyy HH:mm")}").WithIsInline(true))
                         .AddField(fb => fb.WithName("**Days Since Created**").WithValue(daysCreation.ToString()).WithIsInline(true))
                         .AddField(fb => fb.WithName("**Current Game**").WithValue($"{(user.Game?.Name == null ? "-" : user.Game.Value.Name)}").WithIsInline(true))
                         .AddField(fb => fb.WithName("**Roles**").WithValue($"**({user.RoleIds.Count})** - {string.Join(", ", user.GetRoles().Select(r => r.Name)).SanitizeMentions()}").WithIsInline(true))
